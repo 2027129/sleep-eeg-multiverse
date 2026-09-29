@@ -1,0 +1,7 @@
+reference,artifact,epoch_2,epoch_4,epoch_8,epoch_10
+average,ica,142,139,126,120
+average,threshold,142,124,79,63
+cz,ica,131,126,113,109
+cz,threshold,131,108,61,46
+mastoid,ica,138,133,116,111
+mastoid,threshold,138,116,62,45
