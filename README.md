@@ -11,9 +11,13 @@ The analysis runs every defensible combination of eight analysis decisions (3,88
 | Path | What it is |
 |---|---|
 | `R/multiverse_pipeline.R` | Stage 1. Reads the eyes-open recordings, runs all 432 pipelines per recording, and writes the feature table, the 3,888-row specification curve and a variance decomposition. |
-| `R/multiverse_inference.R` | Stage 2. Builds the fixed-sample analysis sets, specification curves, variance decompositions, joint permutation tests, the retained-recordings table and Figures 1–2. |
+| `R/multiverse_inference.R` | Stage 2. Builds the fixed-sample analysis sets, specification curves, variance decompositions, joint permutation tests and the retained-recordings table. |
+| `R/sample_composition.R` | Stage 3. Leave-one-participant-out influence analysis of the unrestricted theta-mean multiverse; the six 2-s reference × artifact-handling pipelines run on their own sample and on the 57 common participants; the theta power of the most influential recording. |
+| `R/figure1_sample_composition.R` | Figure 1 (three panels) from the Stage 3 tables. |
+| `R/figures_manuscript.R` | Figure 2 (specification curves) and Figure 3A (variance shares). |
+| `R/headmap.py` | Figure 3B (channel map coloured by the fixed-sample theta effect). Python; needs `mne`, `pandas`, `matplotlib`. |
 | `results/` | Every table the paper reports (described below). |
-| `figures/` | Figures 1 and 2 as written by `multiverse_inference.R`. |
+| `figures/` | The manuscript figures as written by the three figure scripts. |
 
 ## Data
 
@@ -29,7 +33,8 @@ R with tidyverse, fs, jsonlite, signal, fastICA, furrr, future and arrow (the an
 
 1. Open `sleep-eeg-multiverse.Rproj` in RStudio. This sets the working directory to the project folder, which both scripts expect.
 2. Run `R/multiverse_pipeline.R`. The full run took 18.6 minutes on four cores (`N_CORES` at the top of the script). Results for each recording are cached in `results/cache/`, so an interrupted run picks up where it stopped. The ICA step starts from random values, so a fresh run can give slightly different numbers for the ICA pipelines than the included `results/features_all_pipelines.parquet`, which is the file the paper used.
-3. Run `R/multiverse_inference.R` (under a minute). It writes the analysis tables to `results/` and Figures 1–2 to `figures/`. The permutation tests use a fixed seed (20260927), so a rerun reproduces the reported p-values exactly.
+3. Run `R/multiverse_inference.R` (under a minute). It writes the analysis tables to `results/`. The permutation tests use a fixed seed (20260927), so a rerun reproduces the reported p-values exactly.
+4. Run `R/sample_composition.R` (about a minute) for the influence analysis, then `R/figure1_sample_composition.R`, `R/figures_manuscript.R` and `python R/headmap.py` for the figures. All scripts run from the repository root.
 
 To check the statistics without the raw data, skip step 2: `results/features_all_pipelines.parquet` is included, and `multiverse_inference.R` runs from it alone.
 
@@ -75,7 +80,10 @@ Steps shared by every pipeline:
 | `variance_decomposition.csv` | 9 | Main-effects ANOVA of the effect size across all 3,888 specifications. |
 | `variance_decomposition_all_sets.csv` | 57 | Share of variance by decision for each set (`set`: `unrestricted_theta_mean`, `coreB_all`, `coreB_all_2way`, `coreB_theta_mean`, `coreA_theta_mean`). |
 | `permutation_joint_tests_coreB.csv` | 27 | Joint permutation tests on core B: 9 band × outcome families × 3 statistics. |
-| `sample_retained_table.csv` | 6 | Recordings retained (of 142) by reference, artifact handling and epoch length (Table 2 in the paper). |
+| `sample_retained_table.csv` | 6 | Recordings retained (of 142) by reference, artifact handling and epoch length (Table II in the paper). |
+| `leave_one_out_influence.csv` | 71 | The unrestricted theta-mean multiverse recomputed with each participant removed in turn: median effect, correlation between sample size and effect, median effect by artifact handling, and each decision's share of variance. |
+| `six_pipelines_own_vs_common.csv` | 6 | Each 2-s reference × artifact-handling pipeline on its own sample and on the 57 participants common to all six (Figure 1C). |
+| `influential_recording.csv` | 4 | Centro-temporal absolute theta power of the most influential participant (47) in both sessions under both artifact-handling options, with its SD across epochs and, for the other 70 participants under the same pipeline, the median, MAD, 5th and 95th percentiles and the resulting modified z-score (Figure 1B). |
 
 **Specification curves.** The eight decisions, then `n` (participants), `dz` (Cohen's d_z of the SD − NS difference), `p` (paired t-test), `p_fdr` (Benjamini–Hochberg within the set) and `sig` (`p_fdr` < 0.05).
 
